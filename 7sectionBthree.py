@@ -15,8 +15,33 @@ class BankAccount:
             raise InsufficientFundsError
 
     def transfer(self, to_account, amount):
-        self.withdraw(amount)
-        to_account.deposit(amount)
+        try:
+            with Transaction(self, to_account):
+                self.withdraw(amount)
+                to_account.deposit(amount)
+        except InsufficientFundsError as e:
+            print("Transaction failed: Insufficient funds.")
+        except Exception as e:
+            print("Transaction failed:", str(e))
+
+class Transaction:
+    def __init__(self, from_account, to_account):
+        self.from_account = from_account
+        self.to_account = to_account
+
+    def __enter__(self):
+        # Start transaction
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
+            # Rollback transaction on exception
+            self.from_account.rollback()
+            self.to_account.rollback()
+        else:
+            # Commit transaction on success
+            self.from_account.commit()
+            self.to_account.commit()
 
 class InsufficientFundsError(Exception):
     pass
@@ -31,8 +56,6 @@ if __name__ == "__main__":
 
     print("Account A balance:", account_a.balance)
     print("Account B balance:", account_b.balance)
-    #Account A balance: 5000
-    #Account B balance: 5000
 
     # Additional transactions
     # Deposit 3000 to account A
@@ -42,8 +65,63 @@ if __name__ == "__main__":
 
     print("Account A balance:", account_a.balance)
     print("Account B balance:", account_b.balance)
-    #Account A balance: 8000
-    #Account B balance: 4000
+    
+"""In this modified code, we've added a Transaction class that acts as a context manager (with statement). 
+The __enter__ method is empty, and the __exit__ method handles the transaction behavior. If any exception 
+occurs during the transaction, it will be caught in the __exit__ method, and a rollback will be performed 
+by calling rollback() on each account involved in the transaction. Otherwise, if the transaction is successful,
+it will be committed by calling commit() on each account. The rollback() and commit() methods are not defined 
+in the code provided, but you can implement them in the BankAccount class as per your specific requirements."""
+
+
+
+
+# import requests
+
+# class BankAccount:
+#     def __init__(self, account_number, balance):
+#         self.account_number = account_number
+#         self.balance = balance
+
+#     def deposit(self, amount):
+#         self.balance += amount
+
+#     def withdraw(self, amount):
+#         if self.balance >= amount:
+#             self.balance -= amount
+#         else:
+#             raise InsufficientFundsError
+
+#     def transfer(self, to_account, amount):
+#         self.withdraw(amount)
+#         to_account.deposit(amount)
+
+# class InsufficientFundsError(Exception):
+#     pass
+
+# if __name__ == "__main__":
+#     # Create two bank accounts
+#     account_a = BankAccount("123456789", 10000)
+#     account_b = BankAccount("987654321", 0)
+
+#     # Transfer 5000 from account A to account B
+#     account_a.transfer(account_b, 5000)
+
+#     print("Account A balance:", account_a.balance)
+#     print("Account B balance:", account_b.balance)
+#     #Account A balance: 5000
+#     #Account B balance: 5000
+
+#     # Additional transactions
+#     # Deposit 3000 to account A
+#     account_a.deposit(3000)
+#     # Withdraw 1000 from account B
+#     account_b.withdraw(1000)
+
+#     print("Account A balance:", account_a.balance)
+#     print("Account B balance:", account_b.balance)
+#     #Account A balance: 8000
+#     #Account B balance: 4000
 
 """The provided code defines a simple BankAccount class with three main methods: deposit, withdraw, 
     and transfer. Below is a short explanation of each method:
