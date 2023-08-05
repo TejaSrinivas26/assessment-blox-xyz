@@ -1,3 +1,4 @@
+
 Mandatory: Elaborate what your internship or academic projects were?
 ○ What did the system do?
 ○ What other systems have you seen in the wild like that?
